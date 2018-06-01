@@ -511,6 +511,7 @@ void DirectedGraph::PageRankA()
 
 			if(hasNeighbour)
 			{
+				hasNeighbour = false;
 				do
 				{
 					randomNeighbourChoice = start(gen);
