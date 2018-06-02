@@ -31,8 +31,8 @@ int main()
 		std::cout<<"\nExercise a)";
 		graph->PageRankA();
 
-		// std::cout<<"\nExercise b)";
-		// graph->PageRankB();
+		std::cout<<"\nExercise b)";
+		graph->PageRankB();
 	}
 
 	if (userChoice == 2)
@@ -47,8 +47,8 @@ int main()
 		std::cout<<"\nExercise a)";
 		graph->PageRankA();
 
-		// std::cout<<"\nExercise b)";
-		// graph->PageRankB();
+		std::cout<<"\nExercise b)";
+		graph->PageRankB();
 	}
 
 	if (graph)
