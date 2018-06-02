@@ -555,5 +555,60 @@ void DirectedGraph::PageRankA()
 
 void DirectedGraph::PageRankB()
 {
+	int n = m_numberOfVertices;
+	int neighboursNumber;
+	int di[n];
+	double sum;
+	double d = 0.15;
+	double p[n];
+	double p_temp[n];
+	double P[n][n];
 
+	for (int i = 0; i < n; ++i)
+		{
+			p[i] = 1/(double)n;
+			//p_temp[i] = 1/(double)n;
+		}
+
+	for (int i = 0; i < n; ++i)
+	{
+		neighboursNumber = 0;
+		for (int j = 0; j < n; ++j)
+		{
+			if(m_encodedGraphData.at(i).at(j) == 1)
+				neighboursNumber += 1;
+		}
+		di[i] = neighboursNumber;
+	}
+
+	for (int i = 0; i < n; ++i)
+	{
+		for (int j = 0; j < n; ++j)
+		{
+			P[i][j] = (1.0-d)*m_encodedGraphData.at(i).at(j)/(double)di[i] + d/(double)n;
+		}
+	}
+
+	for(int t = 1; t < 1000; t++)
+	{	
+		for (int j = 0; j < n; ++j)
+		{
+			sum = 0;
+			for (int k = 0; k < n; ++k)
+			{
+				sum += p[k] * P[k][j];
+			}
+			p_temp[j] = sum;
+		}
+		for (int i = 0; i < n; ++i)
+			{
+				p[i] = p_temp[i];
+			}		
+	}
+
+	std::cout<<"\nFrequency\n";
+	for (int i = 0; i < n; ++i)
+	{			
+			std::cout<<p[i]<< " ";		
+	}
 }
