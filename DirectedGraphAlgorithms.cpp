@@ -15,6 +15,7 @@ DirectedGraph::DirectedGraph (matrix2d data, std::string representation)
 
 	m_numberOfVertices = data.size();
 	m_hasWeights = 0;
+	m_isStronglyConected = false;
 
 	InitializeDistancesAndP();
 }
@@ -233,21 +234,9 @@ std::vector<int> DirectedGraph::Kosaraju()
 		}
 	}
 	
-	// if(nr == 1)
+	 if(nr == 1)
 		m_isStronglyConected = true;
 	
-	// std::cout<<"This graph has "<<nr<<" consistent components."<<std::endl;
-	// for(int i=1; i<=nr; i++)
-	// {
-	// 	std::cout<<i<<" consistent component: ";
-	// 	for(unsigned j = 0; j < comp.size(); ++j)
-	// 	{
-	// 		if(comp[j] == i)
-	// 			std::cout<<j<<" ";
-	// 	}
-	// 	std::cout<<std::endl;
-	// }
-
 	return comp;
 }
 
