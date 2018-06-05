@@ -50,7 +50,7 @@ int main()
 		std::cout<<"\nExercise b)";
 		graph->PageRankB();
 	}
-
+	std::cout<<std::endl;
 	if (graph)
 		delete graph;
 

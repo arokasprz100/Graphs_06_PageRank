@@ -52,10 +52,10 @@ DirectedGraph* DirectedGraph::GenerateRandomStronglyConnectedGraph()
 {
 	std::random_device randDev;
 	std::mt19937 gen(randDev());
-	std::uniform_int_distribution<> ver(1, 10);
+	std::uniform_int_distribution<> ver(2, 10);
 	std::uniform_int_distribution<> prob(1, 100);
 
-	DirectedGraph * graph = DirectedGraph::GenerateRandomGraphBasedOnProbability(5, 1);
+	DirectedGraph * graph = DirectedGraph::GenerateRandomGraphBasedOnProbability(2, 1);
 
 	while (graph->m_isStronglyConected == false)
 	{
