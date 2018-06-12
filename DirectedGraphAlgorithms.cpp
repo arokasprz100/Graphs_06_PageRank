@@ -14,10 +14,8 @@ DirectedGraph::DirectedGraph (matrix2d data, std::string representation)
 		m_currentRepresentation = GraphRepresentation::IncidenceMatrix;
 
 	m_numberOfVertices = data.size();
-	m_hasWeights = 0;
 	m_isStronglyConected = false;
 
-	InitializeDistancesAndP();
 }
 
 DirectedGraph* DirectedGraph::GenerateRandomGraphBasedOnProbability(unsigned numberOfVertices, double probability)
@@ -43,7 +41,6 @@ DirectedGraph* DirectedGraph::GenerateRandomGraphBasedOnProbability(unsigned num
 				graph->m_encodedGraphData.at(i).push_back(0);
 		}
 	}
-	graph->InitializeDistancesAndP();
 
 	return graph;
 }
@@ -66,18 +63,6 @@ DirectedGraph* DirectedGraph::GenerateRandomStronglyConnectedGraph()
 	return graph;
 }
 
-void DirectedGraph::InitializeDistancesAndP()
-{
-	for (unsigned i = 0; i < m_numberOfVertices; ++i) {
-		p.emplace_back();
-		distances.emplace_back();
-		for (unsigned j = 0; j < m_numberOfVertices; ++j)
-		{
-			p[i].push_back(-1);
-			distances[i].push_back(9999);
-		}
-	}
-}
 
 void DirectedGraph::PrintGraph (std::ostream& placeToPrint) const
 {
@@ -97,25 +82,6 @@ void DirectedGraph::PrintGraph (std::ostream& placeToPrint) const
 		placeToPrint<<std::endl;
 	}
 	placeToPrint << std::endl;
-}
-
-void DirectedGraph::PrintWeightMatrix(std::ostream& placeToPrint) const
-{
-	if (!m_hasWeights)
-	{
-		std::cout << "This graph has no weights, so they can not be printed" << std::endl;
-		return;
-	}
-
-	placeToPrint << std::endl;
-	placeToPrint << "Weight matrix" << std::endl << std::endl;
-
-	for (unsigned i = 0; i<m_numberOfVertices; ++i)
-	{
-		for (unsigned j = 0; j< m_numberOfVertices; ++j)
-			placeToPrint << m_weightMatrix.at(i).at(j) << " ";
-		placeToPrint << std::endl;
-	}
 }
 
 
@@ -143,40 +109,6 @@ unsigned DirectedGraph::GetNumberOfEdges() const
 
 
 
-void DirectedGraph::GenerateWeights(int lowerBound, int upperBound)
-{
-	if (m_hasWeights)
-	{
-		std::cout<<"This graph already has weights. "<<std::endl;
-		return;
-	}
-
-	std::random_device randDev;  
-    std::mt19937 gen(randDev()); 
-    std::uniform_int_distribution<> dis(lowerBound,upperBound);
-
-    GraphRepresentation oldRepresentation = m_currentRepresentation;
-    ChangeToAdjacencyMatrix();
-
-    for (unsigned i =0; i<m_numberOfVertices; ++i)
-    {
-    	m_weightMatrix.emplace_back();
-    	for (unsigned j =0; j<m_numberOfVertices; ++j)
-    	{
-    		if (m_encodedGraphData.at(i).at(j))
-    			m_weightMatrix.at(i).push_back(dis(gen));
-    		else
-    			m_weightMatrix.at(i).push_back(0);
-    	}
-    }
-
-    m_hasWeights = true;
-
-    if (oldRepresentation == GraphRepresentation::AdjacencyList)
-    	ChangeToAdjacencyList();
-    else if (oldRepresentation == GraphRepresentation::IncidenceMatrix)
-    	ChangeToIncidenceMatrix();
-}
 
 std::vector<int> DirectedGraph::Kosaraju()
 {
@@ -273,196 +205,6 @@ void DirectedGraph::ComponentsR(int nr, int vertexID, matrix2d transposedGraph, 
 	}
 }
 
-bool DirectedGraph::BellmanFord(int source, bool print)
-{
-	ChangeToAdjacencyMatrix();
-	bool negativeCycle = false;
-
-	Init(source);
-	
-	for (unsigned i = 1; i < m_numberOfVertices; ++i)
-	{
-		for (unsigned w = 0; w < m_numberOfVertices; ++w)
-		{
-			for (unsigned k = 0; k < m_numberOfVertices; ++k)
-			{
-				if(m_encodedGraphData[w][k]!=0)
-					Relax(m_weightMatrix, w, k, source); 
-			}
-		}
-	}
-
-	for(unsigned w = 0; w < m_numberOfVertices; ++w)
-	{
-		for(unsigned k = 0; k < m_numberOfVertices; ++k)
-			if((m_encodedGraphData[w][k]!=0) && (distances[source][k] > (distances[source][w]+m_weightMatrix[w][k])))
-				negativeCycle = true;
-	}
-
-	if (negativeCycle)
-	{
-		std::cout << "Graph contains a negative cycle!" << std::endl;
-		return false;
-	}
-
-	if (print == false)
-		return true;
-
-	std::cout<<"Vertex nr\tDistance"<<std::endl;
-	for (unsigned i = 0; i < m_numberOfVertices; i++)
-		std::cout<<i<<"\t\t"<<distances[source][i]<<std::endl;
-
-	return true;
-}
-
-
-
-DirectedGraph* DirectedGraph::Add_S()
-{
-	DirectedGraph* extendedGraph = new DirectedGraph(*this);
-	extendedGraph->ChangeToAdjacencyList();
-
-	extendedGraph->m_encodedGraphData.emplace_back();
-	extendedGraph->m_weightMatrix.emplace_back();
-	extendedGraph->distances.emplace_back();
-	extendedGraph->p.emplace_back();
-
-	for (unsigned i = 0; i < m_numberOfVertices; ++i) 
-	{
-		extendedGraph->m_weightMatrix.at(m_numberOfVertices).push_back(0);
-		extendedGraph->m_encodedGraphData.at(m_numberOfVertices).push_back(i);
-		extendedGraph->m_weightMatrix.at(i).push_back(0);
-
-		extendedGraph->distances[i].push_back(9999);
-		extendedGraph->distances[m_numberOfVertices].push_back(9999);
-
-		extendedGraph->p[i].push_back(-1);
-		extendedGraph->p[m_numberOfVertices].push_back(-1);
-	}
-
-	
-	extendedGraph->distances[m_numberOfVertices].push_back(9999);
-	extendedGraph->p[m_numberOfVertices].push_back(-1);
-
-	extendedGraph->m_weightMatrix.at(m_numberOfVertices).push_back(0);
-
-	extendedGraph->m_numberOfVertices++;
-
-	return extendedGraph;
-}
-
-
-void DirectedGraph::Init(int source)
-{
-	for (unsigned i = 0; i < m_numberOfVertices; ++i)
-	{
-		distances[source][i] = 9999;
-		p[source][i] = -1;
-	}
-	distances[source][source] = 0;
-}
-
-void DirectedGraph::Relax(matrix2d& weights, int u, int v, int source)
-{
-	if (distances[source][v] > distances[source][u] + weights[u][v]) 
-	{
-		distances[source][v] = distances[source][u] + weights[u][v];
-		p[source][v] = u;
-	}
-}
-
-void DirectedGraph::Dijkstra(matrix2d& weights, int source)
-{
-	Init(source);
-	std::set<int> S;
-	while (S.size() != m_numberOfVertices)
-	{
-		int min = 9999;
-		for (unsigned i = 0; i < m_numberOfVertices; ++i)
-		{
-			if (distances[source][i] < min && S.find(i) == S.end()) {
-				S.insert(i);
-				ChangeToAdjacencyList();
-				for (unsigned j = 0; j < m_encodedGraphData.at(i).size(); ++j)
-					Relax(weights, i, m_encodedGraphData.at(i).at(j), source);
-			}
-		}
-	}
-}
-
-matrix2d DirectedGraph::Johnson()
-{
-	DirectedGraph* gPrim = Add_S();
-	int s = gPrim->m_numberOfVertices - 1;
-	for (unsigned i = 0; i < gPrim->m_numberOfVertices; ++i)
-		gPrim->distances[s][i] = 9999;
-	gPrim->distances[s][m_numberOfVertices - 1] = 0;
-
-	matrix2d wPrim = gPrim->m_weightMatrix;
-	matrix2d D;
-
-	for (unsigned i = 0; i < m_numberOfVertices; ++i)
-	{
-		D.emplace_back();
-		for (unsigned j = 0; j < m_numberOfVertices; ++j)
-			D[i].push_back(0);
-	}
-
-	std::vector <int> h;
-	for (unsigned i = 0; i < gPrim->m_numberOfVertices; ++i)
-		h.push_back(9999);
-
-	if (gPrim->BellmanFord(s, false) == false)
-	{
-		std::cout << "G contains negative cycle." << std::endl;
-		throw std::invalid_argument("WRONG GRAPH. G contains negative cycle.");
-	}
-	else
-	{
-		for (unsigned i = 0; i < m_numberOfVertices; ++i)
-			h[i] = gPrim->distances[s][i];
-
-		gPrim->ChangeToAdjacencyMatrix();
-
-		for (unsigned i = 0; i < gPrim->m_numberOfVertices; ++i)
-		{
-			for (unsigned j = 0; j < gPrim->m_numberOfVertices; ++j)
-			{
-				if (gPrim->m_encodedGraphData[i][j])
-					wPrim[i][j] = gPrim->m_weightMatrix[i][j] + h[i] - h[j];
-			}
-			for (unsigned j = 0; j < m_numberOfVertices; ++j)
-			{
-				Dijkstra(wPrim, j);
-				for (unsigned k = 0; k < m_numberOfVertices; ++k)
-				{
-					D[j][k] = distances[j][k] - h[j] + h[k];
-				}
-			}
-		}
-	}
-
-	std::cout << std::endl;
-	std::cout << "D matrix: " << std::endl;
-	for (unsigned i = 0; i < m_numberOfVertices; ++i) {
-		for (unsigned j = 0; j < m_numberOfVertices; ++j)
-			std::cout << D[i][j] << " ";
-		std::cout << std::endl;
-	}
-
-	std::cout << std::endl;
-	std::cout << "p matrix:" << std::endl;
-	for (unsigned i = 0; i < m_numberOfVertices; ++i)
-	{
-		for (unsigned j = 0; j < m_numberOfVertices; ++j)
-		{
-			std::cout << p[i][j] << " ";
-		}
-		std::cout << std::endl;
-	}
-
-	return D;
-}
 
 void DirectedGraph::PageRankA()
 {
